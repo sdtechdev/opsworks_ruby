@@ -78,6 +78,14 @@ if node['platform_family'] == 'debian'
   end
 end
 
+if node['platform_family'] == 'debian'
+  execute 'add yarn repository key' do
+    command 'curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -'
+    command 'apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 7FCC7D46ACCC4CF8'
+    user 'root'
+  end
+end
+
 if node['use-nodejs']
   # NodeJS and Yarn
   include_recipe 'nodejs'
