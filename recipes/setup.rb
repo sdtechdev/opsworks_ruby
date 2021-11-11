@@ -6,6 +6,7 @@
 #
 
 include_recipe 'apt'
+include_recipe "nodejs"
 
 prepare_recipe
 
