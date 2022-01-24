@@ -24,6 +24,7 @@ depends 'windows', '< 5.0'
 depends 'yarn'
 
 depends 'redshift_config'
+depends 'sidekiq_custom'
 
 supports 'amazon', '>= 2017.03'
 supports 'ubuntu', '>= 16.04'
