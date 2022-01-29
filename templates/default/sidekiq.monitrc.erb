@@ -1,13 +1,11 @@
 <%- Array.wrap(@out[:config]).each.with_index(1) do |config, config_number| %>
-  <% ([@out[:process_count].to_i || 1].max).times do |n| %>
-      <% identifier = "#{@application}-c#{config_number}-p#{n+1}" %>
-      <% conf_file = "#{@deploy_to}/shared/config/sidekiq_c#{config_number}_p#{n+1}.yml" %>
-      <% syslog = !!@out[:syslog] ? "2>&1 | logger -t sidekiq-#{identifier}" : '' %>
-      <% to_require = @out[:require].present? ? " -r #{File.join(@deploy_to, 'current', @out[:require])}" : '' %>
+  <% identifier = "#{@application}-c#{config_number}" %>
+  <% conf_file = "#{@deploy_to}/shared/config/sidekiq_c#{config_number}.yml" %>
+  <% syslog = !!@out[:syslog] ? "2>&1 | logger -t sidekiq-#{identifier}" : '' %>
+  <% to_require = @out[:require].present? ? " -r #{File.join(@deploy_to, 'current', @out[:require])}" : '' %>
 
-      check process sidekiq_<%= identifier.to_s %> matching "bundle exec sidekiq.*/sidekiq_c<%= config_number %>_p<%= n+1 %>.yml"
-      start program = "/bin/su - <%= node['deployer']['user'] %> -c 'cd <%= File.join(@deploy_to, 'current') %> && SIDEKIQ_PRELOAD= <%= @environment.map { |k, v| "#{k}=\"#{v}\"" }.join(' ') %> bundle exec sidekiqswarm -C <%= conf_file.to_s %> -t 30 -r <%= File.join(@deploy_to, 'current') %> <%= to_require.to_s %> <%= syslog.to_s %>'" with timeout 90 seconds
-      stop program = "/bin/su - <%= node['deployer']['user'] %> -c 'ps -ax | grep "bundle exec sidekiq" | grep sidekiq_c<%= config_number %>_p<%= n+1 %>.yml | grep -v grep | awk "{print \$1}" | xargs --no-run-if-empty pgrep -P | xargs --no-run-if-empty kill'" with timeout 8 seconds
-      group sidekiq_<%= @application.to_s %>_group
-  <% end %>
+  check process sidekiq_<%= identifier.to_s %> matching "bundle exec sidekiq.*/sidekiq_c<%= config_number %>.yml"
+  start program = "/bin/su - <%= node['deployer']['user'] %> -c 'cd <%= File.join(@deploy_to, 'current') %> && SIDEKIQ_COUNT=<%= config[:process_count] %> SIDEKIQ_PRELOAD= <%= @environment.map { |k, v| "#{k}=\"#{v}\"" }.join(' ') %> bundle exec sidekiqswarm -C <%= conf_file.to_s %> -t 30 -r <%= File.join(@deploy_to, 'current') %> <%= to_require.to_s %> <%= syslog.to_s %>'" with timeout 90 seconds
+  stop program = "/bin/su - <%= node['deployer']['user'] %> -c 'ps -ax | grep "bundle exec sidekiq" | grep sidekiq_c<%= config_number %>.yml | grep -v grep | awk "{print \$1}" | xargs --no-run-if-empty pgrep -P | xargs --no-run-if-empty kill'" with timeout 8 seconds
+  group sidekiq_<%= @application.to_s %>_group
 <% end %>
