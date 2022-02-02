@@ -187,6 +187,7 @@ class Chef
           enforce_ownership
 
           environment = new_resource.environment
+          environment.merge!(node['custom_env'])
           env_info = environment && environment.map do |key_and_val|
             "#{key_and_val.first}='#{key_and_val.last}'"
           end.join(' ')

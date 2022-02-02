@@ -49,7 +49,7 @@ module Drivers
           appserver_command: appserver_command,
           appserver_name: adapter,
           deploy_to: deploy_dir(app),
-          environment: environment,
+          environment: environment(with_custom_env: false),
           source_cookbook: appserver_monit_template_cookbook
         }
         file_path = File.join(node['monit']['basedir'],
@@ -144,10 +144,14 @@ module Drivers
         end
       end
 
-      def environment
+      def environment(with_custom_env: true)
         framework = Drivers::Framework::Factory.build(context, app, options)
-        app['environment'].merge(framework.out[:deploy_environment] || {})
-                          .merge('HOME' => node['deployer']['home'], 'USER' => node['deployer']['user'])
+        env =
+          app['environment'].merge(framework.out[:deploy_environment] || {})
+                            .merge('HOME' => node['deployer']['home'], 'USER' => node['deployer']['user'])
+
+        env.merge!(node['custom_env']) if with_custom_env
+        env
       end
     end
   end
