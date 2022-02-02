@@ -140,12 +140,24 @@ default['nginx']['build_type'] = 'default'
 default['nginx']['default_site_enabled'] = false
 default['nginx']['client_body_timeout'] = '12'
 default['nginx']['client_header_timeout'] = '12'
-default['nginx']['client_max_body_size'] = '10m'
+default['nginx']['client_max_body_size'] = '50m'
 default['nginx']['log_dir'] = '/var/log/nginx'
 default['nginx']['proxy_read_timeout'] = '60'
 default['nginx']['proxy_send_timeout'] = '60'
 default['nginx']['send_timeout'] = '10'
 default['nginx']['enable_upgrade_method'] = false
+default['nginx']['worker_processes'] = '10'
+default['nginx']['keepalive_requests'] = '1000'
+default['nginx']['gzip_static'] = 'on'
+default['nginx']['gzip_vary'] = 'on'
+default['nginx']['server_tokens'] = 'off'
+default['nginx']['gzip_types'] = %w[application/x-javascript application/javascript application/xhtml+xml application/xml application/xml+rss application/json text/css text/javascript text/plain text/xml image/svg+xml]
+default['nginx']['gzip_disable'] = "MSIE [1-6].(?!.*SV1)"
+default['nginx']['gzip_min_length'] = '20'
+default['nginx']['variables_hash_max_size'] = '1024'
+default['nginx']['types_hash_max_size'] = '1024'
+default['nginx']['variables_hash_bucket_size'] = '64'
+default['nginx']['proxy_buffer_size'] = '8k'
 
 # framework
 ## common
