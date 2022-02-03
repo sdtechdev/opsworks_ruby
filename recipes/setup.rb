@@ -6,7 +6,7 @@
 #
 
 include_recipe 'apt'
-include_recipe "nodejs"
+include_recipe 'nodejs'
 
 prepare_recipe
 
@@ -233,4 +233,25 @@ bash 'install-rust' do
   environment 'HOME' => '/home/deploy'
   cwd '/home/deploy'
   code 'curl https://sh.rustup.rs -sSf | sh -s -- -y'
+end
+
+if node['platform_family'] == 'debian'
+  apt_package %w[awscli wget ca-certificates]
+
+  execute 'download key' do
+    command 'wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -'
+  end
+
+  apt_repository 'pgdg' do
+    uri 'http://apt.postgresql.org/pub/repos/apt/'
+    distribution 'bionic-pgdg'
+    components %w[main]
+  end
+
+  execute 'apt update' do
+    command 'apt-get update'
+    user 'root'
+  end
+
+  apt_package 'postgresql-client-12'
 end
