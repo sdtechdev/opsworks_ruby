@@ -227,3 +227,10 @@ aws_cloudwatch_agent 'default' do
   action      [:install, :configure, :restart]
   json_config 'amazon-cloudwatch-agent.json.erb'
 end
+
+bash 'install-rust' do
+  user 'deploy'
+  environment 'HOME' => '/home/deploy'
+  cwd '/home/deploy'
+  code 'curl https://sh.rustup.rs -sSf | sh -s -- -y'
+end
