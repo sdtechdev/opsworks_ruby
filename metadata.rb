@@ -27,6 +27,7 @@ depends 'yarn'
 depends 'redshift_config'
 depends 'sidekiq_custom'
 depends 'logrotate_custom'
+depends 'maintenance'
 
 supports 'amazon', '>= 2017.03'
 supports 'ubuntu', '>= 16.04'
