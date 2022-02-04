@@ -7,5 +7,6 @@ cookbook 'redshift_config', path: './redshift_config'
 cookbook 'sidekiq_custom', path: './sidekiq_custom'
 cookbook 'logrotate_custom', path: './logrotate_custom'
 cookbook 'maintenance', path: './maintenance'
+cookbook 'alb_support_custom', path: './alb_support_custom'
 
 metadata

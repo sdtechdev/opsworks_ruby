@@ -24,10 +24,11 @@ depends 'sudo', '= 5.4.4'
 depends 'windows', '< 5.0'
 depends 'yarn'
 
-depends 'redshift_config'
-depends 'sidekiq_custom'
+depends 'alb_support_custom'
 depends 'logrotate_custom'
 depends 'maintenance'
+depends 'redshift_config'
+depends 'sidekiq_custom'
 
 supports 'amazon', '>= 2017.03'
 supports 'ubuntu', '>= 16.04'
