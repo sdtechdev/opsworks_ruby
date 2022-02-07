@@ -183,7 +183,8 @@ class Chef
       def migrate
         run_symlinks_before_migrate
 
-        if new_resource.migrate
+        migrator_node_name = node[:migrator_instance_name]
+        if node.name == migrator_node_name
           enforce_ownership
 
           environment = new_resource.environment
