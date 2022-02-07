@@ -1,0 +1,137 @@
+#!/usr/local/bin/ruby
+# unicorn restart script
+
+require 'etc'
+require 'digest/md5'
+require 'open3'
+require 'logger'
+
+ROOT_PATH="<%= @deploy_dir %>"
+APP_NAME="<%= @app_shortname %>"
+PID_PATH="<%= @deploy_dir %>/shared/pids/unicorn.pid"
+LOG_PATH="<%= @deploy_dir %>/shared/log/unicorn.restart.log"
+
+def run_and_print_command(command)
+  log command
+  _stdout, stderr, status = Open3.capture3(command)
+
+  if status.success?
+    log "success"
+  else
+    log "failure, exitcode #{status.exitstatus}\n#{stderr}"
+    exit(1)
+  end
+end
+
+def run_and_ignore_exitcode_and_print_command(command)
+  log command
+  _stdout, stderr, status = Open3.capture3(command)
+
+  if status.success?
+    log "success"
+  else
+    log "failure, exitcode #{status.exitstatus}\n#{stderr}"
+  end
+end
+
+def unicorn_running?
+  if File.exists?(PID_PATH) && (pid = File.read(PID_PATH).chomp) && system("ps aux | grep #{pid} | grep -v grep > /dev/null")
+    log "Performed running check: unicorn is running with PID #{pid}"
+    pid
+  else
+    log "Performed running check: unicorn is not running"
+    false
+  end
+end
+
+def different_gemfile?
+  if File.exists?("#{ROOT_PATH}/current/Gemfile")
+    dir = Dir["#{ROOT_PATH}/releases/*"]
+    previous_release_path = dir.sort[dir.size-2]
+    if !previous_release_path.nil? && File.exists?("#{previous_release_path}/Gemfile")
+      return Digest::MD5.hexdigest(File.read("#{ROOT_PATH}/current/Gemfile")) != Digest::MD5.hexdigest(File.read("#{previous_release_path}/Gemfile"))
+    end
+  end
+  false
+end
+
+def start_unicorn
+  if File.exists?("#{ROOT_PATH}/current/Gemfile")
+    log "OpsWorks: Gemfile detected - running Unicorn with bundle exec"
+    run_and_ignore_exitcode_and_print_command "cd #{ROOT_PATH}/current && /usr/local/bin/bundle exec unicorn_rails --env <%= @deploy_env %> --daemonize -c #{ROOT_PATH}/shared/config/unicorn.conf"
+  else
+    log "OpsWorks: no Gemfile detected - running plain Unicorn"
+    run_and_ignore_exitcode_and_print_command "cd #{ROOT_PATH}/current && unicorn_rails --env <%= @deploy_env %> --daemonize -c #{ROOT_PATH}/shared/config/unicorn.conf"
+  end
+end
+
+def stop_unicorn
+  if unicorn_running?
+    if run_and_ignore_exitcode_and_print_command "kill -QUIT `cat #{PID_PATH}`"
+      `rm #{PID_PATH}`
+    end
+  else
+    log "You can't stop unicorn, because it's not running"
+  end
+end
+
+def restart_unicorn
+  if unicorn_running?
+    run_and_ignore_exitcode_and_print_command "kill -USR2 `cat #{PID_PATH}`"
+  else
+    start_unicorn
+  end
+end
+
+def clean_restart
+  if different_gemfile?
+    log "Found a previous version with a different Gemfile: Doing a stop & start"
+    stop_unicorn if unicorn_running?
+    start_unicorn
+  else
+    log "No previous version with a different Gemfile found. Assuming a quick restart without re-loading gems is save"
+    restart_unicorn
+  end
+end
+
+def status_unicorn
+  if pid = unicorn_running?
+    log "Unicorn jiffyshirts running with PID #{pid}"
+    true
+  else
+    log "Unicorn jiffyshirts not running"
+    false
+  end
+end
+
+def log(message)
+  puts message
+  logger.info message
+end
+
+def logger
+  return @logger if defined?(@logger)
+
+  @logger = Logger.new File.open(LOG_PATH, File::WRONLY | File::APPEND | File::CREAT)
+end
+
+Process::Sys.setuid(uid = Etc.getpwnam("deploy").uid)
+log "Set Unicorn process UID to #{uid}"
+
+case ARGV[0]
+when "start"
+  log "Starting Unicorn #{APP_NAME}"
+  start_unicorn
+when "stop"
+  log "Stopping Unicorn #{APP_NAME}"
+  stop_unicorn
+when "status"
+  status_unicorn
+when "restart"
+  restart_unicorn
+when "clean-restart"
+  clean_restart
+else
+  log "Usage: {start|stop|status|restart|clean-restart}"
+  exit 1
+end

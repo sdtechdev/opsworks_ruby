@@ -9,33 +9,46 @@ module Drivers
         backlog delay preload_app tcp_nodelay tcp_nopush tries timeout worker_processes
         port
       ]
-      packages 'monit'
 
       def configure
+        add_appserver_service_script
         super
-        add_appserver_monit
       end
 
       def after_deploy
+        deploy_to = deploy_dir(app)
+
+        context.execute "restart unicorn using restart" do
+          script_path = File.join(deploy_to, File.join('shared', 'scripts', 'unicorn'))
+          command "#{script_path} restart"
+          live_stream true
+        end
+
         super
-        restart_monit
       end
 
       def after_undeploy
         super
-        restart_monit
-      end
-
-      def shutdown
-        unmonitor_monit
       end
 
       def appserver_config
         'unicorn.conf'
       end
 
-      def appserver_command
-        "bundle exec unicorn_rails --env #{deploy_env} -c #{deploy_dir(app)}/shared/config/unicorn.conf"
+      def add_appserver_service_script
+        opts = {
+          deploy_dir: deploy_dir(app), app_shortname: app['shortname'], deploy_env: deploy_env
+        }
+
+        template_path = File.join(deploy_dir(app), File.join('shared', 'scripts', 'unicorn'))
+
+        context.template template_path do
+          owner node['deployer']['user']
+          group node['deployer']['group']
+          mode '0755'
+          source 'unicorn_script.erb'
+          variables opts
+        end
       end
     end
   end
