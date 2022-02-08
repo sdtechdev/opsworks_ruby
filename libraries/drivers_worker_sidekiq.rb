@@ -10,6 +10,7 @@ module Drivers
 
       def configure
         add_sidekiq_config
+        add_replica_config
         add_worker_monit
       end
 
@@ -18,6 +19,7 @@ module Drivers
       end
 
       def after_deploy
+        add_replica_config
         restart_monit
       end
 
@@ -92,6 +94,25 @@ module Drivers
 
       def configuration
         Array.wrap(JSON.parse(out[:config].to_json, symbolize_names: true))
+      end
+
+      def add_replica_config
+        Chef::Log.info('Rewrite Sidekiq database.yml for read-replica')
+
+        deploy = node['deploy'][app['shortname']]
+        Chef::Log.info(deploy.inspect)
+        context.template "#{deploy_dir(app)}/shared/config/database.yml" do
+          source 'sidekiq_database.yml.erb'
+          cookbook 'sidekiq_custom'
+          mode '0660'
+          group node['deployer']['group']
+          owner node['deployer']['user']
+          variables(
+            database: deploy['database'],
+            environment: deploy['global']['environment'],
+            sidekiq_on_replica: deploy['sidekiq_on_replica']
+          )
+        end
       end
     end
   end
