@@ -255,3 +255,10 @@ if node['platform_family'] == 'debian'
 
   apt_package 'postgresql-client-12'
 end
+
+template '/etc/ImageMagick-6/policy.xml' do
+  source 'imagemagick-policy.xml'
+  mode 0644
+  owner 'root'
+  group 'root'
+end
