@@ -36,10 +36,8 @@ module Drivers
       def restart_monit
         return if ENV['TEST_KITCHEN']
 
-        (1..configuration.size).each do |config_number|
-          context.execute "monit restart #{adapter}_#{app['shortname']}-c#{config_number}" do
-            retries 3
-          end
+        context.execute "monit restart -g sidekiq_#{app['shortname']}_group" do
+          retries 3
         end
       end
 
