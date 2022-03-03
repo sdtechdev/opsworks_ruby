@@ -1,0 +1,21 @@
+[Unit]
+Description=sidekiq-<%= @index %>
+After=syslog.target network.target
+[Service]
+Type=notify
+WatchdogSec=10
+WorkingDirectory=<%= @deploy_dir %>/current
+ExecStart=/usr/local/bin/bundle exec sidekiqswarm -C /srv/www/jiffyshirts/shared/config/sidekiq_c<%= @index %>.yml -t 30 -r /srv/www/jiffyshirts/current 2>&1 >> ./log/sidekiq.log
+User=<%= @user %>
+Group=<%= @group %>
+UMask=0002
+Environment=SIDEKIQ_PRELOAD=
+Environment=SIDEKIQ_COUNT=<%= @process_count %>
+Environment=RAILS_ENV=<%= @environment %>
+RestartSec=1
+Restart=on-failure
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=sidekiq_<%= @index %>
+[Install]
+WantedBy=multi-user.target

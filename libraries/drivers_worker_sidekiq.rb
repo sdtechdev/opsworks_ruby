@@ -11,7 +11,6 @@ module Drivers
       def configure
         add_sidekiq_config
         add_replica_config
-        add_worker_monit
       end
 
       def before_deploy
@@ -20,12 +19,13 @@ module Drivers
 
       def after_deploy
         add_replica_config
-        restart_monit
+        disable_systemd
+        restart_systemd
       end
 
       def shutdown
         quiet_sidekiq
-        unmonitor_monit
+        disable_systemd
         stop_sidekiq
       end
 
@@ -33,23 +33,53 @@ module Drivers
 
       protected
 
-      def restart_monit
-        return if ENV['TEST_KITCHEN']
+      def restart_systemd
+        (1..existing_configuration_size).each do |config_number|
+          context.execute "systemctl stop sidekiq-#{config_number}"
 
-        context.execute "monit restart -g sidekiq_#{app['shortname']}_group" do
-          retries 3
+          filename = "/etc/systemd/system/sidekiq-#{config_number}.service"
+          context.file(filename) do
+            action :delete
+          end
+        end
+
+        deploy_to = deploy_dir(app)
+        deploy = node['deploy'][app['shortname']]
+
+        configuration.each.with_index(1) do |config, config_number|
+          filename = "/etc/systemd/system/sidekiq-#{config_number}.service"
+
+          context.template filename do
+            mode '0644'
+            source "sidekiq.systemd.erb"
+            variables(
+              index: config_number,
+              deploy_dir: deploy_to,
+              user: node['deployer']['user'],
+              group: node['deployer']['group'],
+              process_count: config[:process_count],
+              environment: deploy['global']['environment']
+            )
+          end
+
+          context.execute "systemctl enable sidekiq-#{config_number}"
+          context.execute "systemctl start sidekiq-#{config_number}"
         end
       end
 
-      def unmonitor_monit
-        (1..configuration.size).each do |config_number|
-          context.execute "monit unmonitor #{adapter}_#{app['shortname']}-c#{config_number}" do
+      def disable_systemd
+        (1..existing_configuration_size).each do |config_number|
+          context.execute "systemctl disable #{adapter}-#{config_number}" do
             retries 3
           end
         end
       end
 
       private
+
+      def existing_configuration_size
+        @_existing_configuration_size ||= `ls /etc/systemd/system/sidekiq* | wc -l`.chomp.to_i
+      end
 
       def add_sidekiq_config
         deploy_to = deploy_dir(app)
@@ -68,26 +98,24 @@ module Drivers
       end
 
       def quiet_sidekiq
-        (1..configuration.size).each do |config_number|
+        (1..existing_configuration_size).each do |config_number|
           Chef::Log.info("Quiet Sidekiq process if exists: no. #{config_number}")
 
-          context.execute(send_signal_to_sidekiq(config_number, :TSTP))
+          context.execute("systemctl kill -s TSTP --kill-who=main sidekiq-#{config_number}") do
+            ignore_failure true
+          end
         end
       end
 
       def stop_sidekiq
-        (1..configuration.size).each do |config_number|
-          timeout = (out[:config]['timeout'] || 8).to_i
+        (1..existing_configuration_size).each do |config_number|
           Chef::Log.info("Stop Sidekiq process if exists: no. #{config_number}")
 
-          context.execute("timeout #{timeout} #{send_signal_to_sidekiq(config_number)}")
+          command = "timeout 8 systemctl kill -s SIGTERM --kill-who=main sidekiq-#{config_number}"
+          context.execute(command) do
+            ignore_failure true
+          end
         end
-      end
-
-      def send_signal_to_sidekiq(config_number, signal = nil)
-        "/bin/su - #{node['deployer']['user']} -c \"ps -ax | grep 'bundle exec sidekiq' | " \
-          "grep sidekiq_c#{config_number}.yml | grep -v grep | awk '{print \\$1}' | " \
-          "xargs --no-run-if-empty pgrep -P | xargs --no-run-if-empty kill#{" -#{signal}" if signal}\""
       end
 
       def configuration
