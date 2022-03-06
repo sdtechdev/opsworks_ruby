@@ -9,6 +9,7 @@ ExecStart=/usr/local/bin/bundle exec sidekiqswarm -C /srv/www/jiffyshirts/shared
 User=<%= @user %>
 Group=<%= @group %>
 UMask=0002
+Environment=MALLOC_ARENA_MAX=2
 Environment=SIDEKIQ_PRELOAD=
 Environment=SIDEKIQ_COUNT=<%= @process_count %>
 Environment=RAILS_ENV=<%= @environment %>
