@@ -47,3 +47,22 @@ logrotate_app 'monit' do
   create     '0644 root root'
   postrotate ['/usr/bin/pkill -HUP -U root -x monit > /dev/null 2>&1 || :']
 end
+
+logrotate_app 'rsyslog' do
+  path       '/var/log/syslog'
+  options    ['missingok', 'notifempty', 'delaycompress', 'compress']
+  size       '50M'
+  create     '0644 root root'
+  postrotate ['/usr/lib/rsyslog/rsyslog-rotate']
+end
+
+logrotate_app 'system' do
+  path %w[/var/log/mail.info /var/log/mail.warn /var/log/mail.err /var/log/mail.log
+          /var/log/daemon.log /var/log/kern.log /var/log/auth.log /var/log/user.log
+          /var/log/lpr.log /var/log/cron.log /var/log/debug /var/log/messages]
+  options    ['missingok', 'notifempty', 'delaycompress', 'compress', 'sharedscripts']
+  frequency  'weekly'
+  create     '0644 root root'
+  rotate     4
+  postrotate ['/usr/lib/rsyslog/rsyslog-rotate']
+end
