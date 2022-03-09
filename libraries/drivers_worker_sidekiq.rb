@@ -145,6 +145,15 @@ module Drivers
           )
         end
       end
+
+      # @param config [Hash]
+      # @param deploy [Hash]
+      # @return [Integer]
+      def maxmem_mb(config, deploy)
+        config[:maxmem_mb].to_i ||
+          deploy['sidekiq_maxmem_mb'].to_i ||
+          DEFAULT_MAXMEM_MB
+      end
     end
   end
 end
