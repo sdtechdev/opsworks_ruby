@@ -47,10 +47,6 @@ module Drivers
           end
         end
 
-        Chef::Log.info('<<<<<<')
-        Chef::Log.info(config.inspect)
-        Chef::Log.info('<<<<<<')
-
         deploy_to = deploy_dir(app)
         deploy = node['deploy'][app['shortname']]
 
