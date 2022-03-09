@@ -10,7 +10,8 @@ module Drivers
 
       # keys to be stripped off from sidekiq.yml configuration
       EXTERNAL_CONFIGURATION_KEYS = %i[process_count maxmem_mb].freeze
-      private_constant :EXTERNAL_CONFIGURATION_KEYS
+      DEFAULT_MAXMEM_MB = 5000
+      private_constant :EXTERNAL_CONFIGURATION_KEYS, :DEFAULT_MAXMEM_MB
 
       def configure
         add_sidekiq_config
