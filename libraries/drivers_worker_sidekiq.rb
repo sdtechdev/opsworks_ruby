@@ -63,7 +63,8 @@ module Drivers
               user: node['deployer']['user'],
               group: node['deployer']['group'],
               process_count: config[:process_count],
-              environment: deploy['global']['environment']
+              environment: deploy['global']['environment'],
+              maxmem_mb: maxmem_mb(config, deploy)
             )
           end
 
