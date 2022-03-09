@@ -6,7 +6,12 @@ module Drivers
       adapter :sidekiq
       allowed_engines :sidekiq
       output filter: %i[config process_count require syslog]
-      packages 'monit', debian: 'redis-server', rhel: 'redis'
+      packages debian: 'redis-server', rhel: 'redis'
+
+      # keys to be stripped off from sidekiq.yml configuration
+      EXTERNAL_CONFIGURATION_KEYS = %i[process_count maxmem_mb].freeze
+      DEFAULT_MAXMEM_MB = 5000
+      private_constant :EXTERNAL_CONFIGURATION_KEYS, :DEFAULT_MAXMEM_MB
 
       def configure
         add_sidekiq_config
@@ -48,6 +53,7 @@ module Drivers
 
         configuration.each.with_index(1) do |config, config_number|
           filename = "/etc/systemd/system/sidekiq-#{config_number}.service"
+          max_memory = maxmem_mb(config, deploy)
 
           context.template filename do
             mode '0644'
@@ -58,7 +64,8 @@ module Drivers
               user: node['deployer']['user'],
               group: node['deployer']['group'],
               process_count: config[:process_count],
-              environment: deploy['global']['environment']
+              environment: deploy['global']['environment'],
+              maxmem_mb: max_memory
             )
           end
 
@@ -92,7 +99,7 @@ module Drivers
             owner node['deployer']['user']
             group www_group
             source 'sidekiq.conf.yml.erb'
-            variables config: config.reject { |k, _| k == :process_count }
+            variables config: config.reject { |k, _| EXTERNAL_CONFIGURATION_KEYS.include?(k) }
           end
         end
       end
@@ -139,6 +146,15 @@ module Drivers
             sidekiq_on_replica: deploy['sidekiq_on_replica']
           )
         end
+      end
+
+      # @param config [Hash]
+      # @param deploy [Hash]
+      # @return [Integer]
+      def maxmem_mb(config, deploy)
+        config[:maxmem_mb] ||
+          deploy['sidekiq_maxmem_mb'] ||
+          DEFAULT_MAXMEM_MB
       end
     end
   end
