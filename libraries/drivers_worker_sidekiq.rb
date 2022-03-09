@@ -6,7 +6,11 @@ module Drivers
       adapter :sidekiq
       allowed_engines :sidekiq
       output filter: %i[config process_count require syslog]
-      packages 'monit', debian: 'redis-server', rhel: 'redis'
+      packages debian: 'redis-server', rhel: 'redis'
+
+      # keys to be stripped off from sidekiq.yml configuration
+      EXTERNAL_CONFIGURATION_KEYS = %i[process_count maxmem_mb].freeze
+      private_constant :EXTERNAL_CONFIGURATION_KEYS
 
       def configure
         add_sidekiq_config
@@ -42,6 +46,10 @@ module Drivers
             action :delete
           end
         end
+
+        Chef::Log.info('<<<<<<')
+        Chef::Log.info(config.inspect)
+        Chef::Log.info('<<<<<<')
 
         deploy_to = deploy_dir(app)
         deploy = node['deploy'][app['shortname']]
@@ -92,7 +100,7 @@ module Drivers
             owner node['deployer']['user']
             group www_group
             source 'sidekiq.conf.yml.erb'
-            variables config: config.reject { |k, _| k == :process_count }
+            variables config: config.reject { |k, _| EXTERNAL_CONFIGURATION_KEYS.include?(k) }
           end
         end
       end
