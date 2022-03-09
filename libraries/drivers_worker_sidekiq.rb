@@ -53,6 +53,7 @@ module Drivers
 
         configuration.each.with_index(1) do |config, config_number|
           filename = "/etc/systemd/system/sidekiq-#{config_number}.service"
+          max_memory = maxmem_mb(config, deploy)
 
           context.template filename do
             mode '0644'
@@ -64,7 +65,7 @@ module Drivers
               group: node['deployer']['group'],
               process_count: config[:process_count],
               environment: deploy['global']['environment'],
-              maxmem_mb: maxmem_mb(config, deploy)
+              maxmem_mb: max_memory
             )
           end
 
