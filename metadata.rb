@@ -29,6 +29,7 @@ depends 'logrotate_custom'
 depends 'maintenance'
 depends 'redshift_config'
 depends 'sidekiq_custom'
+depends 'cleanup_git_cache'
 
 supports 'amazon', '>= 2017.03'
 supports 'ubuntu', '>= 16.04'
