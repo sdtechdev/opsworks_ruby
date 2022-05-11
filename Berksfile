@@ -9,5 +9,6 @@ cookbook 'logrotate_custom', path: './logrotate_custom'
 cookbook 'maintenance', path: './maintenance'
 cookbook 'alb_support_custom', path: './alb_support_custom'
 cookbook 'cleanup_git_cache', path: './cleanup_git_cache'
+cookbook 'solver_microservice', path: './solver_microservice'
 
 metadata
