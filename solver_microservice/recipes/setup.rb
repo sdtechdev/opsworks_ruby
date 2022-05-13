@@ -1,33 +1,21 @@
 # frozen_string_literal: true
 
-pip 'pipenv'
+include_recipe 'poise-python'
+include_recipe 'poise-application'
 
-git node['assignment_solver']['working_dir'] do
-  user node['deployer']['user']
+application node['assignment_solver']['working_dir'] do
+  owner node['deployer']['user']
   group node['deployer']['group']
 
-  repository node['assignment_solver']['repo_url']
-  revision node['assignment_solver']['repo_branch']
+  pip_requirements
 
-  action :sync
-end
+  git node['assignment_solver']['working_dir'] do
+    repository node['assignment_solver']['repo_url']
+    revision node['assignment_solver']['repo_branch']
+  end
 
-execute 'install dependencies' do
-  cwd node['assignment_solver']['working_dir']
-  user node['deployer']['user']
-
-  command 'pipenv install'
-
-  action :run
-end
-
-execute 'run solver' do
-  cwd node['assignment_solver']['working_dir']
-  user node['deployer']['user']
-
-  address = node['assignment_solver']['address']
-  port = node['assignment_solver']['port']
-  command "pipenv run gunicorn -b #{address}:#{port} -D application:application"
-
-  action :run
+  gunicorn do
+    port node['assignment_solver']['port']
+    preload_app true
+  end
 end
