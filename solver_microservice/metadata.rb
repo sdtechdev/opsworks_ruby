@@ -7,8 +7,6 @@ license          'Proprietary - All Rights Reserved'
 description      'runs python solver microservice on the rails app server'
 version          '0.0.1'
 
-depends 'application_python'
-depends 'poise-python'
-depends 'poise-application'
+depends 'pyenv', '~> 1.0'
 
 recipe 'solver_microservice::setup', 'Sync and start python solver'
