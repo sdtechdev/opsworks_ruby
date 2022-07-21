@@ -233,13 +233,6 @@ aws_cloudwatch_agent 'default' do
   json_config 'amazon-cloudwatch-agent.json.erb'
 end
 
-bash 'install-rust' do
-  user 'deploy'
-  environment 'HOME' => '/home/deploy'
-  cwd '/home/deploy'
-  code 'curl https://sh.rustup.rs -sSf | sh -s -- -y'
-end
-
 if node['platform_family'] == 'debian'
   apt_package %w[awscli wget ca-certificates]
 
