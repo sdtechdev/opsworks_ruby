@@ -8,11 +8,6 @@
 include_recipe 'apt'
 include_recipe 'nodejs'
 
-execute 'force run daily apt update' do
-  command 'systemd-run --property="After=apt-daily.service apt-daily-upgrade.service" --wait /bin/true'
-  user 'root'
-end
-
 prepare_recipe
 
 if node['patches']['chef12_ssl_fix']

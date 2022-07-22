@@ -30,6 +30,7 @@ depends 'maintenance'
 depends 'redshift_config'
 depends 'sidekiq_custom'
 depends 'cleanup_git_cache'
+depends 'apt_periodic_updates'
 
 supports 'amazon', '>= 2017.03'
 supports 'ubuntu', '>= 16.04'
