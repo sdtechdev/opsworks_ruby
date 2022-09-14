@@ -6,6 +6,19 @@
     "namespace": "StatsD",
     "metrics_collected": {
       "statsd": {}
+    <% if node['apply_cloudwatch_overrides'] == true %>
+      ,"disk": {
+        "measurement": [
+          "used_percent"
+        ],
+        "resources": [
+          "/"
+        ],
+        "append_dimensions": {
+          "InstanceId": "<%= node.name %>"
+        }
+      }
+    <% end %>
     }
   }
 }
