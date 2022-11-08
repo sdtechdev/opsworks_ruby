@@ -21,14 +21,14 @@ node[:deploy].each do |app_name, deploy|
 
   cron 'apt-daily' do
     path default_path
-    hour '*/2'
+    hour '13'
     user 'root'
     command '/usr/lib/apt/apt-helper wait-online; /usr/lib/apt/apt.systemd.daily update'
   end
 
   cron 'apt-daily-upgrade' do
     path default_path
-    hour '*/2'
+    hour '13'
     minute '12'
     user 'root'
     command '/usr/lib/apt/apt.systemd.daily install'
