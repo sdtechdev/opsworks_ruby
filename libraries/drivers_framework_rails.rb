@@ -38,6 +38,8 @@ module Drivers
 
         database = db_driver.out
         deploy_environment = deploy_env
+        replica_db_settings = node['deploy'][app['shortname']]['replica_db_settings']
+        database[:replica] = replica_db_settings unless replica_db_settings.nil?
 
         context.template File.join(deploy_dir(app), 'shared', 'config', 'database.yml') do
           source 'database.yml.erb'
