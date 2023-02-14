@@ -3,5 +3,10 @@
   (['development', 'production'] + Array.wrap(@environment)).select(&:present?).uniq.each do |env|
     config[env] = @database
   end
+
+  if @factory_database
+    config['factory'] = @factory_database
+  end
+
   JSON.parse(config.to_json).to_yaml
 -%>

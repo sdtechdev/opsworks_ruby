@@ -41,12 +41,18 @@ module Drivers
         replica_db_settings = node['deploy'][app['shortname']]['replica_db_settings']
         database[:replica] = replica_db_settings unless replica_db_settings.nil?
 
+        factory_database = node['deploy'][app['shortname']]['factory_database']
+
         context.template File.join(deploy_dir(app), 'shared', 'config', 'database.yml') do
           source 'database.yml.erb'
           mode '0660'
           owner node['deployer']['user'] || 'root'
           group www_group
-          variables(database: database, environment: deploy_environment)
+          variables(
+            database: database,
+            environment: deploy_environment,
+            factory_database: factory_database
+          )
         end
       end
 
