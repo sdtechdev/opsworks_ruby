@@ -9,6 +9,8 @@ upstream <%= @name %>_<%= @application[:domains].first %> {
 }
 
 server {
+  client_header_buffer_size 10k;
+  large_client_header_buffers 8 16k;
   listen <%= @out[:port] %>;
   server_name <%= @application[:domains].join(" ") %> <%= node['hostname'] %>;
   access_log <%= @out[:log_dir] %>/<%= @application[:domains].first %>.access.log;
