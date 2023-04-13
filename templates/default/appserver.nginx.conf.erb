@@ -3,7 +3,7 @@ upstream <%= @name %>_<%= @application[:domains].first %> {
 }
 
 server {
-  server_name <%= node['main_domain_name'] %>;
+  server_name <%= node['nginx_custom']['main_hostname'] %>;
 
   include /srv/www/jiffyshirts/current/config/nginx/server_common.conf;
 
@@ -26,3 +26,22 @@ server {
 
   <%= @out[:extra_config] %>
 }
+
+<% (node['nginx_custom']['mobile_app_additional_hostnames'] || []).each do |name| %>
+  server {
+    server_name <%= name %>;
+
+    include /srv/www/jiffyshirts/current/config/nginx/server_common.conf;
+
+    # allow to process mobile app requests if they made to additional domain
+    location ~ ^/api/orders/\d+/(current_apple_pay_payload|update_apple_pay_address)$ {
+      proxy_pass http://unicorn_jiffyshirts;
+    }
+
+    # redirect all the other requests to main domain
+    location / {
+      return 301 $scheme://<%= node['nginx_custom']['main_hostname'] %>$request_uri;
+    }
+  }
+<% end %>
+
