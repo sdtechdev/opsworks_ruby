@@ -3,7 +3,7 @@ upstream <%= @name %>_<%= @application[:domains].first %> {
 }
 
 server {
-  server_name <%= @application[:domains].join(" ") %> <%= node['hostname'] %>;
+  server_name <%= node['main_domain_name'] %>;
 
   include /srv/www/jiffyshirts/current/config/nginx/server_common.conf;
 
