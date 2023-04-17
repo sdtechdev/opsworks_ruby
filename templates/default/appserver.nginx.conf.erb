@@ -1,4 +1,4 @@
-<% main_hostname = node.dig('nginx_custom', 'main_hostname') || "#{@application[:domains].join(" ")} #{node['hostname']}" %>
+<% main_hostname = node.read('nginx_custom', 'main_hostname') || "#{@application[:domains].join(" ")} #{node['hostname']}" %>
 
 upstream <%= @name %>_<%= @application[:domains].first %> {
   server unix:<%= @deploy_dir.to_s %>/shared/sockets/<%= @name %>.sock fail_timeout=0;
@@ -29,7 +29,7 @@ server {
   <%= @out[:extra_config] %>
 }
 
-<% (node.dig('nginx_custom', 'mobile_app_additional_hostnames') || []).each do |name| %>
+<% (node.read('nginx_custom', 'mobile_app_additional_hostnames') || []).each do |name| %>
   server {
     server_name <%= name %>;
 
