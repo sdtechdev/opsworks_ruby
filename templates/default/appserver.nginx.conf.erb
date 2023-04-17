@@ -1,9 +1,11 @@
+<% main_hostname = node.dig('nginx_custom', 'main_hostname') || "#{@application[:domains].join(" ")} #{node['hostname']}" %>
+
 upstream <%= @name %>_<%= @application[:domains].first %> {
   server unix:<%= @deploy_dir.to_s %>/shared/sockets/<%= @name %>.sock fail_timeout=0;
 }
 
 server {
-  server_name <%= node['nginx_custom']['main_hostname'] %>;
+  server_name <%= main_hostname %>;
 
   include /srv/www/jiffyshirts/current/config/nginx/server_common.conf;
 
@@ -27,7 +29,7 @@ server {
   <%= @out[:extra_config] %>
 }
 
-<% (node['nginx_custom']['mobile_app_additional_hostnames'] || []).each do |name| %>
+<% (node.dig('nginx_custom', 'mobile_app_additional_hostnames') || []).each do |name| %>
   server {
     server_name <%= name %>;
 
@@ -40,7 +42,7 @@ server {
 
     # redirect all the other requests to main domain
     location / {
-      return 301 $scheme://<%= node['nginx_custom']['main_hostname'] %>$request_uri;
+      return 301 $scheme://<%= main_hostname %>$request_uri;
     }
   }
 <% end %>
