@@ -154,7 +154,7 @@ if node['ruby-provider'] == 'fullstaq'
   link '/usr/local/bin/ruby' do
     to "/usr/lib/fullstaq-ruby/versions/#{ruby_package_ver}/bin/ruby"
   end
-else
+elsif node['ruby-provider'] == 'ruby-ng'
   # ruby-ng provider
   if node['platform_family'] == 'debian'
     node.default['ruby-ng']['ruby_version'] = node['ruby-version']
@@ -180,6 +180,146 @@ else
   gem_package 'bundler' do
     action :install
     version '~> 1' unless bundler2_applicable
+  end
+else
+  apt_repository 'fullstaq-ruby' do
+    action :remove
+  end
+
+  package 'fullstaq-ruby' do
+    action :remove
+  end
+
+  chruby_pgp_key_path = ::File.join(Chef::Config[:file_cache_path], 'chruby.tar.gz.asc')
+  tar_path = ::File.join(Chef::Config[:file_cache_path], 'chruby.tar.gz')
+  postmodern_pgp_key_path = ::File.join(Chef::Config[:file_cache_path], 'postmodern.asc')
+
+  package 'gnupg'
+  package 'make'
+
+  remote_file tar_path do
+    source 'https://github.com/postmodern/chruby/archive/v0.3.9.tar.gz'
+    owner 'root'
+    group 'root'
+    mode '0755'
+  end
+
+  remote_file chruby_pgp_key_path do
+    source 'https://raw.github.com/postmodern/chruby/master/pkg/chruby-0.3.9.tar.gz.asc'
+    owner 'root'
+    group 'root'
+    mode '0755'
+  end
+
+  remote_file postmodern_pgp_key_path do
+    source 'https://raw.github.com/postmodern/postmodern.github.io/master/postmodern.asc'
+    owner 'root'
+    group 'root'
+    mode '0755'
+    notifies :run, 'execute[Import GPG Key]', :immediately
+  end
+
+  execute 'Import GPG Key' do
+    command "gpg --import #{postmodern_pgp_key_path}"
+    notifies :run, 'execute[verify tar]', :immediately
+    action :nothing
+  end
+
+  execute 'verify tar' do
+    command "gpg --verify #{chruby_pgp_key_path} #{tar_path}"
+    notifies :run, 'execute[install chruby]', :immediately
+    action :nothing
+  end
+
+  execute 'install chruby' do
+    cwd Chef::Config[:file_cache_path]
+    command <<-EOH
+      tar -xzvf chruby.tar.gz
+      cd chruby-0.3.9
+      sudo make install
+    EOH
+    action :nothing
+  end
+
+  file '/etc/profile.d/chruby.sh' do
+    content(
+      <<~STR
+        if [ -n \"\$BASH_VERSION\" ] || [ -n \"\$ZSH_VERSION\" ]; then
+        	source /usr/local/share/chruby/chruby.sh
+        	source /usr/local/share/chruby/auto.sh
+          chruby ruby-#{node['ruby-version']}
+        fi
+      STR
+    )
+    mode '0644'
+    owner 'root'
+    group 'root'
+    action :create_if_missing
+  end
+
+  [
+    'source /usr/local/share/chruby/chruby.sh',
+    'source /usr/local/share/chruby/auto.sh',
+    'chruby ruby-2.7.6'
+  ].each do |line|
+    bash 'append to /etc/bash.bashrc' do
+      code <<~EOH
+        if ! grep -F "#{line}" "/etc/bash.bashrc"; then
+          echo #{line} >> "/etc/bash.bashrc"
+        fi
+      EOH
+      user 'root'
+    end
+  end
+
+  remote_file 'ruby-install-0.9.1.tar.gz.asc' do
+    source 'https://github.com/postmodern/ruby-install/releases/download/v0.9.1/ruby-install-0.9.1.tar.gz.asc'
+    owner 'root'
+    group 'root'
+    mode '0755'
+    action :create
+  end
+
+  remote_file 'ruby-install-0.9.1.tar.gz' do
+    source 'https://github.com/postmodern/ruby-install/releases/download/v0.9.1/ruby-install-0.9.1.tar.gz'
+    owner 'root'
+    group 'root'
+    mode '0755'
+    action :create
+  end
+
+  execute 'verify ruby-install signature' do
+    command 'gpg --verify ruby-install-0.9.1.tar.gz.asc ruby-install-0.9.1.tar.gz'
+  end
+
+  execute 'extract ruby-install source' do
+    command 'tar -xzvf ruby-install-0.9.1.tar.gz'
+  end
+
+  execute 'make install' do
+    command 'make install'
+    cwd 'ruby-install-0.9.1'
+    user 'root'
+  end
+
+  execute 'install ruby version' do
+    command "ruby-install ruby #{node['ruby-version']}"
+  end
+
+  path = "/opt/rubies/ruby-#{node['ruby-version']}/bin:" \
+         '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
+  execute 'update bundler' do
+    command "/opt/rubies/ruby-#{node['ruby-version']}/bin/gem update bundler"
+    user 'root'
+    environment('PATH' => path)
+  end
+
+  link '/usr/local/bin/bundle' do
+    to "/opt/rubies/ruby-#{node['ruby-version']}/bin/bundle"
+  end
+
+  link '/usr/local/bin/ruby' do
+    to "/opt/rubies/ruby-#{node['ruby-version']}/bin/ruby"
   end
 end
 
