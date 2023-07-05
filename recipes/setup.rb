@@ -5,6 +5,12 @@
 # Recipe:: setup
 #
 
+if node['ruby-provider'] != 'fullstaq'
+  apt_repository 'fullstaq-ruby' do
+    action :remove
+  end
+end
+
 include_recipe 'apt'
 include_recipe 'nodejs'
 
@@ -182,14 +188,6 @@ elsif node['ruby-provider'] == 'ruby-ng'
     version '~> 1' unless bundler2_applicable
   end
 else
-  apt_repository 'fullstaq-ruby' do
-    action :remove
-  end
-
-  package 'fullstaq-ruby' do
-    action :remove
-  end
-
   chruby_pgp_key_path = ::File.join(Chef::Config[:file_cache_path], 'chruby.tar.gz.asc')
   tar_path = ::File.join(Chef::Config[:file_cache_path], 'chruby.tar.gz')
   postmodern_pgp_key_path = ::File.join(Chef::Config[:file_cache_path], 'postmodern.asc')
