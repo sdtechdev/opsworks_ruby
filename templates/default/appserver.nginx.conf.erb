@@ -29,14 +29,17 @@ server {
   <%= @out[:extra_config] %>
 }
 
+<% regex = node.read('nginx_custom', 'mobile_api_paths_regex') %>
 <% (node.read('nginx_custom', 'mobile_app_additional_hostnames') || []).each do |name| %>
+  <% next if regex.blank? %>
+
   server {
     server_name <%= name %>;
 
     include /srv/www/jiffyshirts/current/config/nginx/server_common.conf;
 
     # allow to process mobile app requests if they made to additional domain
-    location ~ ^/api/orders/\d+/(current_apple_pay_payload|update_apple_pay_address)$ {
+    location ~ <%= regex %> {
       proxy_pass http://unicorn_jiffyshirts;
     }
 
