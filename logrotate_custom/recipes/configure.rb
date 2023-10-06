@@ -41,9 +41,11 @@ template '/etc/logrotate.conf' do
 end
 
 template '/etc/crontab' do
+  cookbook 'logrotate_custom'
+  source 'crontab.erb'
   owner 'root'
   group 'root'
-  mode '0600'
+  mode '0644'
 
   variables(
     cron_jobs: [
