@@ -40,21 +40,21 @@ template '/etc/logrotate.conf' do
   action :create
 end
 
-template '/etc/crontab' do
-  cookbook 'logrotate_custom'
-  source 'crontab.erb'
-  owner 'root'
-  group 'root'
-  mode '0644'
-
-  variables(
-    cron_jobs: [
-      '@reboot /usr/sbin/logrotate -f /etc/logrotate.conf'
-    ]
-  )
-
-  action :create
-end
+# template '/etc/crontab' do
+#   cookbook 'logrotate_custom'
+#   source 'crontab.erb'
+#   owner 'root'
+#   group 'root'
+#   mode '0644'
+#
+#   variables(
+#     cron_jobs: [
+#       '@reboot /usr/sbin/logrotate -f /etc/logrotate.conf'
+#     ]
+#   )
+#
+#   action :create
+# end
 
 
 logrotate_app 'monit' do
