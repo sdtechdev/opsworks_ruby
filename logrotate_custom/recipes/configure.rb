@@ -40,6 +40,21 @@ template '/etc/logrotate.conf' do
   action :create
 end
 
+template '/etc/crontab' do
+  owner 'root'
+  group 'root'
+  mode '0600'
+
+  variables(
+    cron_jobs: [
+      '@reboot /usr/sbin/logrotate -f /etc/logrotate.conf'
+    ]
+  )
+
+  action :create
+end
+
+
 logrotate_app 'monit' do
   path       '/var/log/monit'
   options    ['missingok', 'notifempty']
