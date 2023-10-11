@@ -38,8 +38,12 @@ module Drivers
 
         database = db_driver.out
         deploy_environment = deploy_env
-        replica_db_settings = node['deploy'][app['shortname']]['replica_db_settings']
-        database[:replica] = replica_db_settings unless replica_db_settings.nil?
+
+        # this will ensure that replica settings are available in the database.yml file so that
+        # staging and production database settings have similar settings
+        replica_database = node['deploy'][app['shortname']]['replica_db_settings']&.dup
+        replica_database = database.dup if replica_database.nil?
+        replica_database[:replica] = true
 
         factory_database = node['deploy'][app['shortname']]['factory_database']
 
@@ -50,6 +54,7 @@ module Drivers
           group www_group
           variables(
             database: database,
+            replica: replica_database,
             environment: deploy_environment,
             factory_database: factory_database
           )
