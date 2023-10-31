@@ -412,7 +412,7 @@ unless File.exist?('/usr/local/bin/convert')
   end
 end
 
-template '/etc/ImageMagick-6/policy.xml' do
+template '/usr/local/etc/ImageMagick-6/policy.xml' do
   source 'imagemagick-policy.xml'
   mode 0644
   owner 'root'
