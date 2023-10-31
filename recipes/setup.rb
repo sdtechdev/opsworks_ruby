@@ -387,6 +387,31 @@ if node['platform_family'] == 'debian'
   apt_package 'postgresql-client-12'
 end
 
+# Imagemagick Installation
+unless File.exist?('/usr/local/bin/convert')
+  imagemagick_archive_path = ::File.join(Chef::Config[:file_cache_path], 'imagemagick-6.9.10-97.tar.xz')
+
+
+  remote_file imagemagick_archive_path do
+    source 'https://imagemagick.org/archive/releases/ImageMagick-6.9.10-97.tar.xz'
+    owner 'root'
+    group 'root'
+    mode '0755'
+  end
+
+  execute 'install imagemagick' do
+    cwd Chef::Config[:file_cache_path]
+    command <<-EOH
+      tar -xf imagemagick-6.9.10-97.tar.xz
+      cd ImageMagick-6.9.10-97
+      ./configure
+      sudo make install
+      ldconfig /usr/local/lib
+    EOH
+    action :run
+  end
+end
+
 template '/etc/ImageMagick-6/policy.xml' do
   source 'imagemagick-policy.xml'
   mode 0644
