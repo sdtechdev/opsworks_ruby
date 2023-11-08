@@ -374,7 +374,7 @@ if node['platform_family'] == 'debian'
   end
 
   apt_repository 'pgdg' do
-    uri 'http://apt.postgresql.org/pub/repos/apt/'
+    uri 'https://apt-archive.postgresql.org/pub/repos/apt'
     distribution 'bionic-pgdg'
     components %w[main]
   end
