@@ -389,6 +389,8 @@ end
 
 # Imagemagick Installation
 apt_package 'libpng-dev'
+apt_package 'libwebp-dev'
+apt_package 'libjpeg-dev'
 imagemagick_archive_path = ::File.join(Chef::Config[:file_cache_path], 'imagemagick-6.9.10-97.tar.xz')
 
 
