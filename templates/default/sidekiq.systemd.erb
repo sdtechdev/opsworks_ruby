@@ -13,6 +13,7 @@ Environment=MALLOC_ARENA_MAX=2
 Environment=SIDEKIQ_MAXMEM_MB=<%= @maxmem_mb %>
 Environment=SIDEKIQ_PRELOAD=
 Environment=SIDEKIQ_COUNT=<%= @process_count %>
+Environment=SIDEKIQ_ENT_USERNAME=71fc49c3
 Environment=RAILS_ENV=<%= @environment %>
 RestartSec=1
 Restart=on-failure
