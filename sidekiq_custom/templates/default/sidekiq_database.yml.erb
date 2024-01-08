@@ -1,20 +1,21 @@
 <% (['development', 'production'] + [@environment]).uniq.each do |env| -%>
 <%= env %>:
-  database: <%= @database[:database].to_s.inspect %>
-  encoding: <%= (@database[:encoding] || 'utf8').to_s.inspect %>
-  adapter: <%= @database[:adapter].to_s.inspect %>
-  host: <%= (@database[:host] || 'localhost').to_s.inspect %>
-  username: <%= @database[:username].to_s.inspect %>
-  password: <%= @database[:password].to_s.inspect %>
-  reconnect: <%= @database[:reconnect] ? 'true' : 'false' %>
-  <%- if @database[:pool] -%>
-  pool: <%= @database[:pool].to_i.inspect %>
-  <%- end -%>
-  <%- if @database[:port] -%>
-  port: <%= @database[:port].to_i.inspect %>
-  <%- end -%>
+  primary:
+    database: <%= @database[:database].to_s.inspect %>
+    encoding: <%= (@database[:encoding] || 'utf8').to_s.inspect %>
+    adapter: <%= @database[:adapter].to_s.inspect %>
+    host: <%= (@database[:host] || 'localhost').to_s.inspect %>
+    username: <%= @database[:username].to_s.inspect %>
+    password: <%= @database[:password].to_s.inspect %>
+    reconnect: <%= @database[:reconnect] ? 'true' : 'false' %>
+    <%- if @database[:pool] -%>
+    pool: <%= @database[:pool].to_i.inspect %>
+    <%- end -%>
+    <%- if @database[:port] -%>
+    port: <%= @database[:port].to_i.inspect %>
+    <%- end -%>
   <%- if @sidekiq_on_replica.present? -%>
-  replica:
+  primary_replica:
     host: <%= (@sidekiq_on_replica[:host] || 'localhost').to_s.inspect %>
     username: <%= @sidekiq_on_replica[:username].to_s.inspect %>
     password: <%= @sidekiq_on_replica[:password].to_s.inspect %>
@@ -23,6 +24,9 @@
     <%- end -%>
     <%- if @sidekiq_on_replica[:port] -%>
     port: <%= @sidekiq_on_replica[:port].to_i.inspect %>
+    <%- end -%>
+    <%- if @sidekiq_on_replica[:replica] -%>
+    replica: true
     <%- end -%>
   <% end -%>
 <%- end -%>

@@ -133,6 +133,11 @@ module Drivers
         Chef::Log.info('Rewrite Sidekiq database.yml for read-replica')
 
         deploy = node['deploy'][app['shortname']]
+        database = deploy['database']
+        replica_database = deploy['sidekiq_on_replica']&.dup
+        replica_database = database.dup if replica_database.nil?
+        replica_database[:replica] = true
+
         Chef::Log.info(deploy.inspect)
         context.template "#{deploy_dir(app)}/shared/config/database.yml" do
           source 'sidekiq_database.yml.erb'
@@ -141,9 +146,9 @@ module Drivers
           group node['deployer']['group']
           owner node['deployer']['user']
           variables(
-            database: deploy['database'],
+            database: database,
             environment: deploy['global']['environment'],
-            sidekiq_on_replica: deploy['sidekiq_on_replica']
+            sidekiq_on_replica: replica_database,
           )
         end
       end
