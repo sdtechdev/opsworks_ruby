@@ -14,6 +14,7 @@ depends 'ark', '= 4.0.0'
 depends 'aws_cloudwatch', '~> 1.0.2'
 depends 'chef_client_updater', '~> 3.6.0' # 3.7 introduces breaking change
 depends 'logrotate', '2.2.1' # 2.2.2 breaks tests for whatever reason
+depends 'mingw', '< 3.0' # v3.0 requires a higher chef version (>= 15.3)
 depends 'nginx', '< 9.0'
 depends 'nodejs', '< 7.0'
 depends 'ohai', '< 5.3'
