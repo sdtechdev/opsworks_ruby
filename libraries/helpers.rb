@@ -92,11 +92,22 @@ def every_enabled_rds(context, application, &block)
   data.each(&block)
 end
 
-def perform_bundle_install(shared_path, envs = {})
-  bundle_path = "#{shared_path}/vendor/bundle"
+def update_bundle_configurations(shared_path, envs = {})
+  execute 'bundle_config' do
+    bundle_path = "#{shared_path}/vendor/bundle"
 
+    command "/usr/local/bin/bundle config set deployment 'true'"
+    command "/usr/local/bin/bundle config set without 'development test'"
+    command "/usr/local/bin/bundle config set path '#{bundle_path}'"
+    user node['deployer']['user'] || 'root'
+    group www_group
+    environment envs
+  end
+end
+
+def perform_bundle_install(envs = {})
   execute 'bundle_install' do
-    command "/usr/local/bin/bundle install --deployment --without development test --path #{bundle_path}"
+    command '/usr/local/bin/bundle install'
     user node['deployer']['user'] || 'root'
     group www_group
     environment envs
