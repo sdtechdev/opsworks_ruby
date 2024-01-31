@@ -393,7 +393,6 @@ apt_package 'libwebp-dev'
 apt_package 'libjpeg-dev'
 imagemagick_archive_path = ::File.join(Chef::Config[:file_cache_path], 'imagemagick-6.9.10-97.tar.xz')
 
-
 remote_file imagemagick_archive_path do
   source 'https://imagemagick.org/archive/releases/ImageMagick-6.9.10-97.tar.xz'
   owner 'root'
@@ -419,3 +418,6 @@ template '/usr/local/etc/ImageMagick-6/policy.xml' do
   owner 'root'
   group 'root'
 end
+
+# install rsvg-convert tool, for converting and resizing SVG image to PNG
+apt_package 'librsvg2-bin'
