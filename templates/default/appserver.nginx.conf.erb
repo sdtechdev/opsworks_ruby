@@ -1,52 +1,56 @@
-<% main_hostname = node.read('nginx_custom', 'main_hostname') || "#{@application[:domains].join(" ")} #{node['hostname']}" %>
+<% host_redirects = node.read('nginx_custom', 'host_redirects') || {} %>
+<% regex = node.read('nginx_custom', 'mobile_api_paths_regex') %>
 
 upstream <%= @name %>_<%= @application[:domains].first %> {
   server unix:<%= @deploy_dir.to_s %>/shared/sockets/<%= @name %>.sock fail_timeout=0;
 }
-
-server {
-  server_name <%= main_hostname %>;
-
-  include /srv/www/jiffyshirts/current/config/nginx/server_common.conf;
-
-  location / {
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_set_header Host $http_host;
-    proxy_redirect off;
-
-    if (-f $document_root/offline) {
-      return 503;
-    }
-
-    # If you don't find the filename in the static files
-    # Then request it from the unicorn server
-    if (!-f $request_filename) {
-      proxy_pass http://unicorn_jiffyshirts;
-      break;
-    }
-  }
-
-  <%= @out[:extra_config] %>
-}
-
-<% regex = node.read('nginx_custom', 'mobile_api_paths_regex') %>
-<% (node.read('nginx_custom', 'mobile_app_additional_hostnames') || []).each do |name| %>
-  <% next if regex.blank? %>
-
+<% main_hostnames = host_redirects.keys.presence || ["#{@application[:domains].join(" ")} #{node['hostname']}"] %>
+<% main_hostnames.each do |main_hostname| %>
   server {
-    server_name <%= name %>;
+    server_name <%= main_hostname %>;
 
     include /srv/www/jiffyshirts/current/config/nginx/server_common.conf;
 
-    # allow to process mobile app requests if they made to additional domain
-    location ~ <%= regex %> {
-      proxy_pass http://unicorn_jiffyshirts;
+    location / {
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header Host $http_host;
+      proxy_redirect off;
+
+      if (-f $document_root/offline) {
+        return 503;
+      }
+
+      # If you don't find the filename in the static files
+      # Then request it from the unicorn server
+      if (!-f $request_filename) {
+        proxy_pass http://unicorn_jiffyshirts;
+        break;
+      }
     }
 
-    # redirect all the other requests to main domain
-    location / {
-      return 301 $scheme://<%= main_hostname %>$request_uri;
-    }
+    <%= @out[:extra_config] %>
   }
+<% end %>
+
+<% host_redirects.each do |main_hostname, mobile_app_additional_hostnames| %>
+  <% mobile_app_additional_hostnames.each do |name| %>
+    <% next if regex.blank? %>
+
+    server {
+      server_name <%= name %>;
+
+      include /srv/www/jiffyshirts/current/config/nginx/server_common.conf;
+
+      # allow to process mobile app requests if they made to additional domain
+      location ~ <%= regex %> {
+        proxy_pass http://unicorn_jiffyshirts;
+      }
+
+      # redirect all the other requests to main domain
+      location / {
+        return 301 $scheme://<%= main_hostname %>$request_uri;
+      }
+    }
+  <% end %>
 <% end %>
 
