@@ -102,6 +102,7 @@ def update_bundle_configurations(shared_path, envs = {})
     user node['deployer']['user'] || 'root'
     group www_group
     environment envs
+    cwd release_path
   end
 end
 
