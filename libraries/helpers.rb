@@ -96,9 +96,12 @@ def update_bundle_configurations(shared_path, envs = {})
   execute 'bundle_config' do
     bundle_path = "#{shared_path}/vendor/bundle"
 
-    command "/usr/local/bin/bundle config set deployment 'true'"
-    command "/usr/local/bin/bundle config set without 'development test'"
-    command "/usr/local/bin/bundle config set path '#{bundle_path}'"
+    command <<-EOH
+      /usr/local/bin/bundle config set deployment 'true' &&
+      /usr/local/bin/bundle config set without 'development test' &&
+      /usr/local/bin/bundle config set path '#{bundle_path}'
+    EOH
+
     user node['deployer']['user'] || 'root'
     group www_group
     environment envs
