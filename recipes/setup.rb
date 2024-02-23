@@ -306,10 +306,13 @@ else
 
   path = "/opt/rubies/ruby-#{node['ruby-version']}/bin:" \
          '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
-  execute 'update bundler' do
-    command "/opt/rubies/ruby-#{node['ruby-version']}/bin/gem update bundler"
-    user 'root'
-    environment('PATH' => path)
+
+  bash 'install bundler' do
+    code <<~EOH
+      gem install bundler -v 2.3.13
+    EOH
+
+    environment ({ 'PATH' => path })
   end
 
   link '/usr/local/bin/bundle' do

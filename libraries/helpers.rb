@@ -95,13 +95,25 @@ end
 def perform_bundle_install(shared_path, envs = {})
   bundle_path = "#{shared_path}/vendor/bundle"
 
-  execute 'bundle_install' do
-    command "/usr/local/bin/bundle install --deployment --without development test --path #{bundle_path}"
-    user node['deployer']['user'] || 'root'
+  Chef::Log.info('RUNNING BUNDLE INSTALL')
+
+  bash 'bundle_install' do
+    user 'deploy'
     group www_group
     environment envs
     cwd release_path
+
+    code <<~EOH
+       mkdir -p .bundle &&
+       touch .bundle/config &&
+       echo '---' > .bundle/config &&
+       echo 'BUNDLE_DEPLOYMENT: "true"' >> .bundle/config &&
+       echo 'BUNDLE_WITHOUT: "development:test"' >> .bundle/config &&
+       echo 'BUNDLE_PATH: "/srv/www/jiffyshirts/shared/vendor/bundle"' >> .bundle/config &&
+       bundle install
+    EOH
   end
+  Chef::Log.info('COMPLETED BUNDLE INSTALL')
 end
 
 def prepare_recipe
