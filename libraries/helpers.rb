@@ -92,31 +92,28 @@ def every_enabled_rds(context, application, &block)
   data.each(&block)
 end
 
-def update_bundle_configurations(shared_path, envs = {})
-  execute 'bundle_config' do
-    bundle_path = "#{shared_path}/vendor/bundle"
+def perform_bundle_install(shared_path, envs = {})
+  bundle_path = "#{shared_path}/vendor/bundle"
 
-    command <<-EOH
-      /usr/local/bin/bundle config set deployment 'true' &&
-      /usr/local/bin/bundle config set without 'development test' &&
-      /usr/local/bin/bundle config set path '#{bundle_path}'
+  Chef::Log.info('RUNNING BUNDLE INSTALL')
+
+  bash 'bundle_install' do
+    user 'deploy'
+    group www_group
+    environment envs
+    cwd release_path
+
+    code <<~EOH
+       mkdir -p .bundle &&
+       touch .bundle/config &&
+       echo '---' > .bundle/config &&
+       echo 'BUNDLE_DEPLOYMENT: "true"' >> .bundle/config &&
+       echo 'BUNDLE_WITHOUT: "development:test"' >> .bundle/config &&
+       echo 'BUNDLE_PATH: "/srv/www/jiffyshirts/shared/vendor/bundle"' >> .bundle/config &&
+       bundle install
     EOH
-
-    user node['deployer']['user'] || 'root'
-    group www_group
-    environment envs
-    cwd release_path
   end
-end
-
-def perform_bundle_install(envs = {})
-  execute 'bundle_install' do
-    command '/usr/local/bin/bundle install'
-    user node['deployer']['user'] || 'root'
-    group www_group
-    environment envs
-    cwd release_path
-  end
+  Chef::Log.info('COMPLETED BUNDLE INSTALL')
 end
 
 def prepare_recipe
