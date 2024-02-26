@@ -424,3 +424,24 @@ end
 
 # install rsvg-convert tool, for converting and resizing SVG image to PNG
 apt_package 'librsvg2-bin'
+
+# Exiftool Installation
+exiftool_archive_path = ::File.join(Chef::Config[:file_cache_path], 'Image-ExifTool-12.77.tar.gz')
+
+remote_file exiftool_archive_path do
+  source 'https://jiffy-linux-packages.s3.amazonaws.com/Image-ExifTool-12.77.tar.gz'
+  owner 'root'
+  group 'root'
+  mode '0755'
+end
+
+execute 'install exiftool' do
+  cwd Chef::Config[:file_cache_path]
+  command <<-EOH
+    gzip -dc Image-ExifTool-12.77.tar.gz | tar -xf -
+    cd Image-ExifTool-12.77
+    perl Makefile.PL
+    sudo make install
+  EOH
+  action :run
+end
