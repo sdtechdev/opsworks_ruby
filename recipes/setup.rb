@@ -394,10 +394,10 @@ end
 apt_package 'libpng-dev'
 apt_package 'libwebp-dev'
 apt_package 'libjpeg-dev'
-imagemagick_archive_path = ::File.join(Chef::Config[:file_cache_path], 'imagemagick-6.9.13-6.tar.xz')
+imagemagick_archive_path = ::File.join(Chef::Config[:file_cache_path], 'imageMagick-6.9.12-98.tar.xz')
 
 remote_file imagemagick_archive_path do
-  source 'https://imagemagick.org/archive/releases/ImageMagick-6.9.13-6.tar.xz'
+  source 'https://imagemagick.org/archive/releases/ImageMagick-6.9.12-98.tar.xz'
   owner 'root'
   group 'root'
   mode '0755'
@@ -406,8 +406,8 @@ end
 execute 'install imagemagick' do
   cwd Chef::Config[:file_cache_path]
   command <<-EOH
-    tar -xf imagemagick-6.9.13-6.tar.xz
-    cd ImageMagick-6.9.13-6
+    tar -xf imageMagick-6.9.12-98.tar.xz
+    cd ImageMagick-6.9.12-98
     ./configure
     sudo make install
     ldconfig /usr/local/lib
