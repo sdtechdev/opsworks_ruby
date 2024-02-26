@@ -40,6 +40,11 @@ template '/etc/logrotate.conf' do
   action :create
 end
 
+cron 'at_reboot' do
+  command '/usr/sbin/logrotate -f /etc/logrotate.conf'
+  time :reboot
+end
+
 logrotate_app 'monit' do
   path       '/var/log/monit'
   options    ['missingok', 'notifempty']
