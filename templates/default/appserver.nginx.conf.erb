@@ -4,6 +4,15 @@
 upstream <%= @name %>_<%= @application[:domains].first %> {
   server unix:<%= @deploy_dir.to_s %>/shared/sockets/<%= @name %>.sock fail_timeout=0;
 }
+
+server {
+    listen 80;
+    listen [::]:80;
+    server_name _;
+
+    return 301 https://$host$request_uri;
+}
+
 <% main_hostnames = host_redirects.keys.presence || ["#{@application[:domains].join(" ")} #{node['hostname']}"] %>
 <% main_hostnames.each do |main_hostname| %>
   server {
