@@ -1,6 +1,11 @@
 <% host_redirects = node.read('nginx_custom', 'host_redirects') || {} %>
 <% regex = node.read('nginx_custom', 'mobile_api_paths_regex') %>
 
+map $http_x_forwarded_proto $hsts_header {
+  default "";
+  https "max-age=63072000; includeSubDomains; preload";
+}
+
 upstream <%= @name %>_<%= @application[:domains].first %> {
   server unix:<%= @deploy_dir.to_s %>/shared/sockets/<%= @name %>.sock fail_timeout=0;
 }
@@ -48,7 +53,7 @@ upstream <%= @name %>_<%= @application[:domains].first %> {
 
       # redirect all the other requests to main domain
       location / {
-        return 301 https://<%= main_hostname %>$request_uri;
+        return 301 $scheme://<%= main_hostname %>$request_uri;
       }
     }
   <% end %>
