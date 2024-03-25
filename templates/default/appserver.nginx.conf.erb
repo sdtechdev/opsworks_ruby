@@ -9,10 +9,15 @@ map $http_x_forwarded_proto $hsts_header {
 upstream <%= @name %>_<%= @application[:domains].first %> {
   server unix:<%= @deploy_dir.to_s %>/shared/sockets/<%= @name %>.sock fail_timeout=0;
 }
+
 <% main_hostnames = host_redirects.keys.presence || ["#{@application[:domains].join(" ")} #{node['hostname']}"] %>
 <% main_hostnames.each do |main_hostname| %>
   server {
     server_name <%= main_hostname %>;
+
+    if ($http_x_forwarded_proto = "http") {
+      return 301 https://$host$request_uri;
+    }
 
     include /srv/www/jiffyshirts/current/config/nginx/server_common.conf;
 
@@ -43,6 +48,10 @@ upstream <%= @name %>_<%= @application[:domains].first %> {
 
     server {
       server_name <%= name %>;
+
+      if ($http_x_forwarded_proto = "http") {
+        return 301 https://$host$request_uri;
+      }
 
       include /srv/www/jiffyshirts/current/config/nginx/server_common.conf;
 
