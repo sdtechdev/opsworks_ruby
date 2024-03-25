@@ -62,7 +62,7 @@ upstream <%= @name %>_<%= @application[:domains].first %> {
 
       # redirect all the other requests to main domain
       location / {
-        return 301 $scheme://<%= main_hostname %>$request_uri;
+        return 301 $http_x_forwarded_proto://<%= main_hostname %>$request_uri;
       }
     }
   <% end %>
