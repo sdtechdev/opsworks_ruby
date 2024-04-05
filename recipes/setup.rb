@@ -427,3 +427,6 @@ apt_package 'librsvg2-bin'
 
 # install gs tool, for converting and resizing PDF image to PNG
 apt_package 'ghostscript'
+
+# libvips
+apt_package 'libvips-dev'
