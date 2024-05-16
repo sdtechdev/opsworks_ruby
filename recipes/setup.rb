@@ -394,33 +394,6 @@ end
 apt_package 'libpng-dev'
 apt_package 'libwebp-dev'
 apt_package 'libjpeg-dev'
-imagemagick_archive_path = ::File.join(Chef::Config[:file_cache_path], 'imageMagick-6.9.12-98.tar.xz')
-
-remote_file imagemagick_archive_path do
-  source 'https://imagemagick.org/archive/releases/ImageMagick-6.9.12-98.tar.xz'
-  owner 'root'
-  group 'root'
-  mode '0755'
-end
-
-execute 'install imagemagick' do
-  cwd Chef::Config[:file_cache_path]
-  command <<-EOH
-    tar -xf imageMagick-6.9.12-98.tar.xz
-    cd ImageMagick-6.9.12-98
-    ./configure
-    sudo make install
-    ldconfig /usr/local/lib
-  EOH
-  action :run
-end
-
-template '/usr/local/etc/ImageMagick-6/policy.xml' do
-  source 'imagemagick-policy.xml'
-  mode 0644
-  owner 'root'
-  group 'root'
-end
 
 # install rsvg-convert tool, for converting and resizing SVG image to PNG
 apt_package 'librsvg2-bin'
