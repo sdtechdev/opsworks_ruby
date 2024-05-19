@@ -1,7 +1,10 @@
 <%=
   config = {}
   (['development', 'production'] + Array.wrap(@environment)).select(&:present?).uniq.each do |env|
-    config[env] = @database
+    config[env] = {
+      primary: @database,
+      primary_replica: @replica
+    }
   end
 
   if @factory_database
